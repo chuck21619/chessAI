@@ -7,39 +7,42 @@ def fenToState(fenString):
     firstSplit[-1] = secondSplit[0]
     return firstSplit + secondSplit
 
-
 class clhBoard(chess.Board):
     def state(self):
         return fenToState(self.fen())
     
     def step(self, action):
         reward = 0
+        move = None
+        try:
+            move = self.moveFromInteger(action)
+        except:
+            reward = -1_000
+            return self.state(), reward, self.is_game_over()
 
-        if self.isLegalMove(action):
-            reward = -10_000
-        
         activePlayer = self.turn
+        self.push(move)
 
-        wonGame = False
-        lostGame = False
+        outcome = self.outcome()
+        if outcome:
+            if outcome.winner == activePlayer:
+                reward = 1_000
+        else:
+            reward = self.materialValue(activePlayer)
 
-        result = self.outcome()
-        self.set_fen(action)
-        #if won, reward = 10_000
-        #if illegal, reward = -10_000
-        #else reward = difference in material
-        return self.state(), reward, self.is_game_over(), ""
+        return self.state(), reward, self.is_game_over()
     
-    def isLegalMove(self, FENstring):
-        allowedFENs = []
-
-        for legal_move in self.legal_moves():
-            self.push(legal_move)
-            allowedFENs.append(self.fen())
-            self.pop()
-
-        self.set_fen(FENstring)
-        if FENstring in allowedFENs:
-            return True
-        
-        return False
+    
+    def moveFromInteger(self, number):
+        startingSquare = number // 64
+        endingSquare = number % 64
+        return self.find_move(startingSquare, endingSquare)
+    
+    def materialValue(self, color):
+        value = 0
+        value += 1 * len(self.pieces(chess.PAWN, color))
+        value += 3 * len(self.pieces(chess.KNIGHT, color))
+        value += 3.5 * len(self.pieces(chess.BISHOP, color))
+        value += 5 * len(self.pieces(chess.ROOK, color))
+        value += 9 * len(self.pieces(chess.QUEEN, color))
+        return value

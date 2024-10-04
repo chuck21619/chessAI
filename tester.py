@@ -1,17 +1,33 @@
 import chess
 
 board = chess.Board()
-board.set_fen("7k/8/5K2/6Q1/8/8/8/8 w - - 0 1")
-print(board.turn)
+board.set_fen("7k/8/5K2/6Q1/8/8/8/8 w - -")
+#print(board.turn)
 
-for move in board.legal_moves:
-    if move.from_square == 38:
-        if move.to_square == 54:
-            print(move)
-            board.push(move)
+def main():
+    print(materialValue(chess.BLACK))
 
-#board.push("Qg7#")
+def materialValue(color):
+    value = 0
 
-result = board.outcome()
-print(result)
-print(result.winner)
+    value += 1 * len(board.pieces(chess.PAWN, color))
+    value += 3 * len(board.pieces(chess.KNIGHT, color))
+    value += 3.5 * len(board.pieces(chess.BISHOP, color))
+    value += 5 * len(board.pieces(chess.ROOK, color))
+    value += 9 * len(board.pieces(chess.QUEEN, color))
+
+    return value
+        
+
+def makeCheckmateMove():
+    for move in board.legal_moves:
+        if move.from_square == 38:
+            if move.to_square == 54:
+                print(move)
+                board.push(move)
+
+    result = board.outcome()
+    print(result)
+
+
+main()
