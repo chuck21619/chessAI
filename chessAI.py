@@ -20,7 +20,7 @@ SOLVED_TOTAL_POINTS = 200
 
 board = clh.clhBoard()
 
-state_size = (1029,)
+state_size = (1047,)
 q_network = tf.keras.Sequential([
     tf.keras.layers.Input(state_size),
     tf.keras.layers.Dense(64, activation="relu"),

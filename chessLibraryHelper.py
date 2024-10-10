@@ -4,12 +4,29 @@ import numpy as np
 class clhBoard(chess.Board):
     def state(self):
         #https://www.reddit.com/r/chess/comments/11s72he/fen_to_the_matrix_data_preprocessing_for_neural/
-        state = np.zeros(64*8*2+5)
+        state = np.zeros(1047)
         for i in range(64):
             piece = self.piece_at(i)
             if piece != None:
                 onehotencodingindex = piece.piece_type * (piece.color + 1) * i
                 state[onehotencodingindex] = 1
+
+        indexTurn = 1025
+        state[indexTurn] = self.turn
+
+        indexWhiteCastleKingSide = 1026
+        indexWhiteCastleQueenSide = 1027
+        indexBlackCastleKingSide = 1028
+        indexBlackCastleQueenSide = 1029
+        state[indexWhiteCastleKingSide] = self.has_kingside_castling_rights(chess.WHITE)
+        state[indexWhiteCastleQueenSide] = self.has_kingside_castling_rights(chess.WHITE)
+        state[indexBlackCastleKingSide] = self.has_kingside_castling_rights(chess.BLACK)
+        state[indexBlackCastleQueenSide] = self.has_kingside_castling_rights(chess.BLACK)
+
+
+        #1030-1045 target en pessant squares
+        indexHalfmoveClock = 1046
+        state[indexHalfmoveClock] = self.halfmove_clock
         return state
 
         
