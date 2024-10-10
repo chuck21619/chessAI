@@ -1,15 +1,18 @@
 import chess
-
-def fenToState(fenString):
-    firstSplit = fenString.split("/")
-    secondSplit = firstSplit[-1].split()
-    firstSplit.pop()
-    firstSplit[-1] = secondSplit[0]
-    return firstSplit + secondSplit
+import numpy as np
 
 class clhBoard(chess.Board):
     def state(self):
-        return fenToState(self.fen())
+        #https://www.reddit.com/r/chess/comments/11s72he/fen_to_the_matrix_data_preprocessing_for_neural/
+        state = np.zeros(64*8*2+5)
+        for i in range(64):
+            piece = self.piece_at(i)
+            if piece != None:
+                onehotencodingindex = piece.piece_type * (piece.color + 1) * i
+                state[onehotencodingindex] = 1
+        return state
+
+        
     
     def step(self, action):
         reward = 0

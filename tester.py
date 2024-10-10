@@ -1,11 +1,23 @@
 import chess
+import numpy as np
+import chessLibraryHelper as clh
 
 board = chess.Board()
 board.set_fen("7k/8/5K2/6Q1/8/8/8/8 w - -")
-#print(board.turn)
+clhboard = clh.clhBoard()
+#clhboard.set_fen("7k/8/5K2/6Q1/8/8/8/8 w - -")
 
 def main():
-    print(materialValue(chess.BLACK))
+    #print(clhboard.fen())
+    print(clhboard.state())
+    #stringToNumpy()
+    #print(materialValue(chess.BLACK))
+
+def stringToNumpy():
+    sample = "123123"
+    numpyVersion = np.int64(sample)
+    print(f"type: {type(numpyVersion)}")
+    print(f"value: {numpyVersion}")
 
 def materialValue(color):
     value = 0

@@ -20,21 +20,21 @@ SOLVED_TOTAL_POINTS = 200
 
 board = clh.clhBoard()
 
-state_size = len(board.state())
+state_size = (1029,)
 q_network = tf.keras.Sequential([
-    tf.keras.layers.Input((state_size,)),
+    tf.keras.layers.Input(state_size),
     tf.keras.layers.Dense(64, activation="relu"),
     tf.keras.layers.Dense(32, activation="relu"),
     tf.keras.layers.Dense(16, activation="relu"),
-    tf.keras.layers.Dense(4096, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
+    tf.keras.layers.Dense(4672, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
 ])
 
 target_q_network = tf.keras.Sequential([
-    tf.keras.layers.Input((state_size,)),
+    tf.keras.layers.Input(state_size),
     tf.keras.layers.Dense(64, activation="relu"),
     tf.keras.layers.Dense(32, activation="relu"),
     tf.keras.layers.Dense(16, activation="relu"),
-    tf.keras.layers.Dense(4096, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
+    tf.keras.layers.Dense(4672, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
 ])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=ALPHA)
