@@ -5,15 +5,15 @@ from collections import deque
 import time
 import random
 import chessLibraryHelper as clh
+import os
 
-
-MEMORY_SIZE = 1_000_000   # size of memory buffer
-GAMMA = 0.99999           # discount factor
+MEMORY_SIZE = 100_000     # size of memory buffer
+GAMMA = 0.995             # discount factor
 ALPHA = 1e-3              # learning rate  
 NUM_STEPS_FOR_UPDATE = 4  # perform a learning update every C time steps
 TAU = 1e-3                # Soft update parameter.
 MINIBATCH_SIZE = 64       # Mini-batch size.
-E_DECAY = 0.99999         # ε-decay rate for the ε-greedy policy.
+E_DECAY = 0.995           # ε-decay rate for the ε-greedy policy.
 E_MIN = 0.01              # Minimum ε value for the ε-greedy policy.
 
 SOLVED_TOTAL_POINTS = 200
@@ -24,19 +24,11 @@ state_size = (774,)
 q_network = tf.keras.Sequential([
     tf.keras.layers.Input(state_size),
     tf.keras.layers.Dense(2000, activation="relu"),
-    tf.keras.layers.Dense(2000, activation="relu"),
-    tf.keras.layers.Dense(2000, activation="relu"),
-    tf.keras.layers.Dense(2000, activation="relu"),
-    tf.keras.layers.Dense(2000, activation="relu"),
     tf.keras.layers.Dense(64*64, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
 ])
 
 target_q_network = tf.keras.Sequential([
     tf.keras.layers.Input(state_size),
-    tf.keras.layers.Dense(2000, activation="relu"),
-    tf.keras.layers.Dense(2000, activation="relu"),
-    tf.keras.layers.Dense(2000, activation="relu"),
-    tf.keras.layers.Dense(2000, activation="relu"),
     tf.keras.layers.Dense(2000, activation="relu"),
     tf.keras.layers.Dense(64*64, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
 ])
@@ -100,7 +92,7 @@ def get_new_eps(epsilon):
 
 
 start = time.time()
-num_episodes = 20_000
+num_episodes = 1
 max_num_timesteps = 100
 total_point_history = []
 num_p_av = 100
@@ -152,5 +144,7 @@ for i in range(num_episodes):
         q_network.save('lunar_lander_model.h5')
         break
 
+
+q_network.save('./q_network.keras')
 tot_time = time.time() - start
 print(f"\nTotal Runtime: {tot_time:.2f} s ({(tot_time/60):.2f} min)")

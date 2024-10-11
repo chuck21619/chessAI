@@ -1,6 +1,8 @@
 import chess
 import numpy as np
 import chessLibraryHelper as clh
+import tensorflow as tf
+import keras
 
 board = chess.Board()
 board.set_fen("7k/8/5K2/6Q1/8/8/8/8 w - -")
@@ -8,14 +10,12 @@ clhboard = clh.clhBoard()
 #clhboard.set_fen("7k/8/5K2/6Q1/8/8/8/8 w - -")
 
 def main():
-    #def pieces(self, piece_type: PieceType, color: Color) -> SquareSet:
+    print("main")
 
-    for i in range(len(chess.COLORS)):
-        print(i)
-    #print(clhboard.fen())
-    #print(clhboard.state())
-    #stringToNumpy()
-    #print(materialValue(chess.BLACK))
+
+def saveLoadModel():
+    #q_network.save('./q_network.keras')
+    q_network = keras.models.load_model('./q_network.keras')
 
 def stringToNumpy():
     sample = "123123"
