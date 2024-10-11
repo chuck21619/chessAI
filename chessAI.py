@@ -8,33 +8,37 @@ import chessLibraryHelper as clh
 
 
 MEMORY_SIZE = 1_000_000   # size of memory buffer
-GAMMA = 0.999             # discount factor
+GAMMA = 0.99999           # discount factor
 ALPHA = 1e-3              # learning rate  
 NUM_STEPS_FOR_UPDATE = 4  # perform a learning update every C time steps
 TAU = 1e-3                # Soft update parameter.
 MINIBATCH_SIZE = 64       # Mini-batch size.
-E_DECAY = 0.995           # ε-decay rate for the ε-greedy policy.
+E_DECAY = 0.99999         # ε-decay rate for the ε-greedy policy.
 E_MIN = 0.01              # Minimum ε value for the ε-greedy policy.
 
 SOLVED_TOTAL_POINTS = 200
 
 board = clh.clhBoard()
 
-state_size = (1047,)
+state_size = (774,)
 q_network = tf.keras.Sequential([
     tf.keras.layers.Input(state_size),
-    tf.keras.layers.Dense(64, activation="relu"),
-    tf.keras.layers.Dense(32, activation="relu"),
-    tf.keras.layers.Dense(16, activation="relu"),
-    tf.keras.layers.Dense(4672, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
+    tf.keras.layers.Dense(2000, activation="relu"),
+    tf.keras.layers.Dense(2000, activation="relu"),
+    tf.keras.layers.Dense(2000, activation="relu"),
+    tf.keras.layers.Dense(2000, activation="relu"),
+    tf.keras.layers.Dense(2000, activation="relu"),
+    tf.keras.layers.Dense(64*64, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
 ])
 
 target_q_network = tf.keras.Sequential([
     tf.keras.layers.Input(state_size),
-    tf.keras.layers.Dense(64, activation="relu"),
-    tf.keras.layers.Dense(32, activation="relu"),
-    tf.keras.layers.Dense(16, activation="relu"),
-    tf.keras.layers.Dense(4672, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
+    tf.keras.layers.Dense(2000, activation="relu"),
+    tf.keras.layers.Dense(2000, activation="relu"),
+    tf.keras.layers.Dense(2000, activation="relu"),
+    tf.keras.layers.Dense(2000, activation="relu"),
+    tf.keras.layers.Dense(2000, activation="relu"),
+    tf.keras.layers.Dense(64*64, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
 ])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=ALPHA)
@@ -74,7 +78,7 @@ def get_action(q_values, epsilon=0.0):
     if random.random() > epsilon:
         return np.argmax(q_values.numpy()[0])
     else:
-        return random.choice(np.arange(4))
+        return random.choice(np.arange(64*64))
 
 def check_update_conditions(t, num_steps_upd, memory_buffer):
     if (t + 1) % num_steps_upd == 0 and len(memory_buffer) > MINIBATCH_SIZE:
@@ -96,8 +100,8 @@ def get_new_eps(epsilon):
 
 
 start = time.time()
-num_episodes = 2000
-max_num_timesteps = 200
+num_episodes = 20_000
+max_num_timesteps = 100
 total_point_history = []
 num_p_av = 100
 epsilon = 1.0
@@ -119,7 +123,7 @@ for i in range(num_episodes):
         state_qn = np.expand_dims(state, axis=0)
         q_values = q_network(state_qn)
         action = get_action(q_values, epsilon)
-        next_state, reward, done = board.step(action)    
+        next_state, reward, done = board.step(action)
         memory_buffer.append(experience(state, action, reward, next_state, done))
         update = check_update_conditions(t, NUM_STEPS_FOR_UPDATE, memory_buffer)
 

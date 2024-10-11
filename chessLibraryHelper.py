@@ -4,29 +4,22 @@ import numpy as np
 class clhBoard(chess.Board):
     def state(self):
         #https://www.reddit.com/r/chess/comments/11s72he/fen_to_the_matrix_data_preprocessing_for_neural/
-        state = np.zeros(1047)
-        for i in range(64):
-            piece = self.piece_at(i)
-            if piece != None:
-                onehotencodingindex = piece.piece_type * (piece.color + 1) * i
-                state[onehotencodingindex] = 1
+        state = np.zeros(774)
+        for i in range(len(chess.COLORS)):
+            color = chess.COLORS[i]
+            for k in range(len(chess.PIECE_TYPES)):
+                piece = chess.PIECE_TYPES[k]
+                for j in list(self.pieces(piece, color)):
+                    state[(i+1)*(k+1)+j] = 1
 
-        indexTurn = 1025
-        state[indexTurn] = self.turn
+        state[768] = self.turn
+        state[769] = self.has_kingside_castling_rights(chess.WHITE)
+        state[770] = self.has_kingside_castling_rights(chess.WHITE)
+        state[771] = self.has_kingside_castling_rights(chess.BLACK)
+        state[772] = self.has_kingside_castling_rights(chess.BLACK)
 
-        indexWhiteCastleKingSide = 1026
-        indexWhiteCastleQueenSide = 1027
-        indexBlackCastleKingSide = 1028
-        indexBlackCastleQueenSide = 1029
-        state[indexWhiteCastleKingSide] = self.has_kingside_castling_rights(chess.WHITE)
-        state[indexWhiteCastleQueenSide] = self.has_kingside_castling_rights(chess.WHITE)
-        state[indexBlackCastleKingSide] = self.has_kingside_castling_rights(chess.BLACK)
-        state[indexBlackCastleQueenSide] = self.has_kingside_castling_rights(chess.BLACK)
-
-
-        #1030-1045 target en pessant squares
-        indexHalfmoveClock = 1046
-        state[indexHalfmoveClock] = self.halfmove_clock
+        #and target en pessant squares
+        state[773] = self.halfmove_clock
         return state
 
         
@@ -42,6 +35,7 @@ class clhBoard(chess.Board):
 
         activePlayer = self.turn
         self.push(move)
+        return self.state(), 1_000, self.is_game_over()
 
         outcome = self.outcome()
         if outcome:

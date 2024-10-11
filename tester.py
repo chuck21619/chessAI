@@ -8,8 +8,12 @@ clhboard = clh.clhBoard()
 #clhboard.set_fen("7k/8/5K2/6Q1/8/8/8/8 w - -")
 
 def main():
+    #def pieces(self, piece_type: PieceType, color: Color) -> SquareSet:
+
+    for i in range(len(chess.COLORS)):
+        print(i)
     #print(clhboard.fen())
-    print(clhboard.state())
+    #print(clhboard.state())
     #stringToNumpy()
     #print(materialValue(chess.BLACK))
 
