@@ -5,8 +5,7 @@ from collections import deque
 import time
 import random
 import chessLibraryHelper as clh
-import os
-import openpyxl
+import pygsheets
 
 #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
 max_num_timesteps = 5
@@ -134,8 +133,7 @@ for i in range(num_episodes):
     av_latest_points = np.mean(total_point_history[-num_p_av:])
     epsilon = get_new_eps(epsilon)
     
-    
-    minutes_remaining = ((i/((time.time() - start))) * (num_episodes - i))/60
+    minutes_remaining = (  ((time.time() - start)/max(0.1, i)) * (num_episodes - i)  )  /  60
     hours_remaining = minutes_remaining // 60
     minutes_remainder = minutes_remaining % 60
     print(f"\rEpisode {i+1} | Total point average of the last {num_p_av} episodes: {av_latest_points:.2f}, epsilon:{epsilon:.2f}, est time left: {hours_remaining:.2f} hours {minutes_remainder:.2f} minutes", end="")
@@ -152,15 +150,14 @@ q_network.save('./q_network.keras')
 tot_time = time.time() - start
 print(f"\nTotal Runtime: {tot_time:.2f} s ({(tot_time/60):.2f} min)")
 
-wb = openpyxl.load_workbook('parameters_reward_log.xlsx')
-sheet = wb.active
-new_data = [max_num_timesteps,
-            NUM_STEPS_FOR_UPDATE,
-            MINIBATCH_SIZE,
-            num_episodes,
-            num_hidden_layers,
-            num_hidden_nuerons,
-            round(av_latest_points/max_num_timesteps, 0),
-            round(tot_time/60, 0)]
-sheet.append(new_data)
-wb.save('parameters_reward_log.xlsx')
+gc = pygsheets.authorize(service_file='googleDriveAPIcredentials.json')
+sh = gc.open('chess ai parameters')
+wks = sh[0]
+wks.append_table([max_num_timesteps,
+                  NUM_STEPS_FOR_UPDATE,
+                  MINIBATCH_SIZE,
+                  num_episodes,
+                  num_hidden_layers,
+                  num_hidden_nuerons,
+                  round(av_latest_points/max_num_timesteps, 0),
+                  round(tot_time/60, 0)])
