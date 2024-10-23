@@ -5,13 +5,22 @@ import tensorflow as tf
 import keras
 
 board = chess.Board()
-board.set_fen("7k/8/5K2/6Q1/8/8/8/8 w - -")
+#board.set_fen("7k/8/5K2/6Q1/8/8/8/8 b - -")
 clhboard = clh.clhBoard()
 #clhboard.set_fen("7k/8/5K2/6Q1/8/8/8/8 w - -")
 
 def main():
     print("main")
-
+     
+def moveNumber():
+    board.set_fen("7Q/8/4k3/8/8/8/4K3/8 w - - 0 1")
+    number = 4094
+    startingSquare = number // 64
+    endingSquare = number % 64
+    print(f"startingSquare: {startingSquare}")
+    print(f"endingSquare: {endingSquare}")
+    move = board.find_move(startingSquare, endingSquare)
+    print(move)
 
 def saveLoadModel():
     #q_network.save('./q_network.keras')

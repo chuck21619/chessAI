@@ -34,6 +34,7 @@ class clhBoard(chess.Board):
             return self.state(), reward, self.is_game_over()
 
         activePlayer = self.turn
+        opponentsPreviousMaterialValue = self.materialValue(1-activePlayer)
         self.push(move)
         return self.state(), 1_000, self.is_game_over()
 
@@ -42,7 +43,7 @@ class clhBoard(chess.Board):
             if outcome.winner == activePlayer:
                 reward = 1_000
         else:
-            reward = self.materialValue(activePlayer)
+            reward = opponentsPreviousMaterialValue - self.materialValue(1-activePlayer)
 
         return self.state(), reward, self.is_game_over()
     

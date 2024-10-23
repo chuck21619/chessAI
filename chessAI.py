@@ -6,32 +6,40 @@ import time
 import random
 import chessLibraryHelper as clh
 import os
+import openpyxl
 
-MEMORY_SIZE = 100_000     # size of memory buffer
-GAMMA = 0.995             # discount factor
-ALPHA = 1e-3              # learning rate  
-NUM_STEPS_FOR_UPDATE = 4  # perform a learning update every C time steps
-TAU = 1e-3                # Soft update parameter.
-MINIBATCH_SIZE = 64       # Mini-batch size.
-E_DECAY = 0.995           # ε-decay rate for the ε-greedy policy.
-E_MIN = 0.01              # Minimum ε value for the ε-greedy policy.
+#https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
+max_num_timesteps = 5
+NUM_STEPS_FOR_UPDATE = 10     # perform a learning update every C time steps
+MINIBATCH_SIZE = 256          # Mini-batch size.
+num_episodes = 1_000
+num_hidden_layers = 2
+num_hidden_nuerons = 100
 
-SOLVED_TOTAL_POINTS = 200
+
+SOLVED_TOTAL_POINTS = 1_000 * num_episodes
+
+GAMMA = 0.995                # discount factor
+ALPHA = 1e-3                 # learning rate  
+TAU = 1e-3                   # Soft update parameter.
+MEMORY_SIZE = 100_000        # size of memory buffer
+E_DECAY = 0.99/num_episodes  # ε-decay rate for the ε-greedy policy.
+E_MIN = 0.01                 # Minimum ε value for the ε-greedy policy.
+
+start = time.time()
+total_point_history = []
+num_p_av = 100
+epsilon = 1.0
+memory_buffer = deque(maxlen=MEMORY_SIZE)
 
 board = clh.clhBoard()
-
 state_size = (774,)
-q_network = tf.keras.Sequential([
-    tf.keras.layers.Input(state_size),
-    tf.keras.layers.Dense(2000, activation="relu"),
-    tf.keras.layers.Dense(64*64, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
-])
-
-target_q_network = tf.keras.Sequential([
-    tf.keras.layers.Input(state_size),
-    tf.keras.layers.Dense(2000, activation="relu"),
-    tf.keras.layers.Dense(64*64, activation="linear") #https://ai.stackexchange.com/questions/7979/why-does-the-policy-network-in-alphazero-work
-])
+layers = [tf.keras.layers.Input(state_size)]
+for _ in range(num_hidden_layers):
+    layers.append(tf.keras.layers.Dense(num_hidden_nuerons, activation="relu"))
+layers.append(tf.keras.layers.Dense(64*64, activation="linear"))
+q_network = tf.keras.Sequential(layers)
+target_q_network = tf.keras.Sequential(layers)
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=ALPHA)
 
@@ -88,16 +96,9 @@ def get_experiences(memory_buffer):
     return (states, actions, rewards, next_states, done_vals)
 
 def get_new_eps(epsilon):
-    return max(E_MIN, E_DECAY * epsilon)
+    return max(E_MIN, epsilon - E_DECAY)
 
 
-start = time.time()
-num_episodes = 1
-max_num_timesteps = 100
-total_point_history = []
-num_p_av = 100
-epsilon = 1.0
-memory_buffer = deque(maxlen=MEMORY_SIZE)
 
 target_q_network.set_weights(q_network.get_weights())
 
@@ -132,13 +133,15 @@ for i in range(num_episodes):
     total_point_history.append(total_points)
     av_latest_points = np.mean(total_point_history[-num_p_av:])
     epsilon = get_new_eps(epsilon)
-
-    print(f"\rEpisode {i+1} | Total point average of the last {num_p_av} episodes: {av_latest_points:.2f}", end="")
+    
+    
+    minutes_remaining = ((i/((time.time() - start))) * (num_episodes - i))/60
+    hours_remaining = minutes_remaining // 60
+    minutes_remainder = minutes_remaining % 60
+    print(f"\rEpisode {i+1} | Total point average of the last {num_p_av} episodes: {av_latest_points:.2f}, epsilon:{epsilon:.2f}, est time left: {hours_remaining:.2f} hours {minutes_remainder:.2f} minutes", end="")
     if (i+1) % num_p_av == 0:
-        print(f"\rEpisode {i+1} | Total point average of the last {num_p_av} episodes: {av_latest_points:.2f}")
+        print(f"\rEpisode {i+1} | Total point average of the last {num_p_av} episodes: {av_latest_points:.2f}, epsilon:{epsilon:.2f}")
 
-    # We will consider that the environment is solved if we get an
-    # average of 200 points in the last 100 episodes.
     if av_latest_points >= SOLVED_TOTAL_POINTS:
         print(f"\n\nEnvironment solved in {i+1} episodes!")
         q_network.save('lunar_lander_model.h5')
@@ -148,3 +151,16 @@ for i in range(num_episodes):
 q_network.save('./q_network.keras')
 tot_time = time.time() - start
 print(f"\nTotal Runtime: {tot_time:.2f} s ({(tot_time/60):.2f} min)")
+
+wb = openpyxl.load_workbook('parameters_reward_log.xlsx')
+sheet = wb.active
+new_data = [max_num_timesteps,
+            NUM_STEPS_FOR_UPDATE,
+            MINIBATCH_SIZE,
+            num_episodes,
+            num_hidden_layers,
+            num_hidden_nuerons,
+            round(av_latest_points/max_num_timesteps, 0),
+            round(tot_time/60, 0)]
+sheet.append(new_data)
+wb.save('parameters_reward_log.xlsx')
